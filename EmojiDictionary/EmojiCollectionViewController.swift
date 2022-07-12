@@ -23,8 +23,14 @@ class EmojiCollectionViewController: UICollectionViewController {
         Emoji(symbol: "🏁", name: "Checkered Flag", description: "A black-and-white checkered flag.", usage: "completion")
     ]
     
+    var layout: UICollectionViewLayout?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        layout = generateGridLayout()
+        if let layout = layout {
+            collectionView.collectionViewLayout = layout
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -44,7 +50,14 @@ class EmojiCollectionViewController: UICollectionViewController {
                                                       bottom: 0,
                                                       trailing: padding)
         
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = padding
+        section.contentInsets = NSDirectionalEdgeInsets(top: padding,
+                                                        leading: 0,
+                                                        bottom: padding,
+                                                        trailing: 0)
         
+        return UICollectionViewCompositionalLayout(section: section)
     }
     
     @IBAction func switchLayouts(sender: UIBarButtonItem) {
