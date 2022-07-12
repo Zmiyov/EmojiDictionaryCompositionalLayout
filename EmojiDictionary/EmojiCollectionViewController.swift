@@ -27,15 +27,39 @@ class EmojiCollectionViewController: UICollectionViewController {
     ]
     var sections: [Section] = []
     
-    var layout: UICollectionViewLayout?
+    enum Layout {
+        case grid
+        case column
+    }
+    
+    var activeLayout: Layout = .grid {
+        
+        didSet {
+            if let layout = layout[activeLayout] {
+                self.collectionView.reloadItems(at: self.collectionView.indexPathsForVisibleItems)
+                collectionView.setCollectionViewLayout(layout, animated: true) { _ in
+                    switch self.activeLayout {
+                        
+                    case .grid:
+                        self.layoutButton.image = UIImage(systemName: "rectangle.grid.1x2")
+                    case .column:
+                        self.layoutButton.image = UIImage(systemName: "square.grid.2x2")
+                    }
+                }
+            }
+        }
+    }
+    
+    var layout: [Layout : UICollectionViewLayout] = [:]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         collectionView.register(EmojiCollectionViewHeader.self, forSupplementaryViewOfKind: headerKind, withReuseIdentifier: headerIdentifier)
         
-        layout = generateGridLayout()
-        if let layout = layout {
+        layout[.grid] = generateGridLayout()
+        layout[.column] = generateColumnLayout()
+        if let layout = layout[activeLayout] {
             collectionView.collectionViewLayout = layout
         }
     }
@@ -121,6 +145,15 @@ class EmojiCollectionViewController: UICollectionViewController {
     }
     
     @IBAction func switchLayouts(sender: UIBarButtonItem) {
+        
+        switch activeLayout {
+            
+        case .grid:
+            activeLayout = .column
+        case .column:
+            activeLayout = .grid
+        }
+        
     }
 
     // MARK: - UICollectionViewDataSource
@@ -135,7 +168,9 @@ class EmojiCollectionViewController: UICollectionViewController {
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! EmojiCollectionViewCell
+        let identifier = activeLayout == .grid ? reuseIdentifier : columnReuseIdentifier
+        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath) as! EmojiCollectionViewCell
     
         //Step 2: Fetch model object to display
         let emoji = emojis[indexPath.item]
